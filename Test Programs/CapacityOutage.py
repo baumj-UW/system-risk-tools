@@ -14,21 +14,40 @@ import scipy.misc
 
 
 unavail = 0.02
-P = np.array([[unavail, (1-unavail)]])
 
-#calculate system relative risk table (3.13 from Reliability Engineering)
-NUM_UNITS = 10 #number of units in the system
-REF_UNITS = 2  #number of units used as baseline for relative risk
-SysRisk = np.zeros((NUM_UNITS + 1, 3)) # Table columns [# units, P(2+ unit outage), Relative risk]
-for units in range(2, NUM_UNITS+1, 1):
-    SysRisk[units, 0] = units
-    SysRisk[units, 1] = 1 - (P[0, 1] ** (units - 1) * (P[0, 1] + units * P[0, 0]))
-    SysRisk[units, 2] = SysRisk[units, 1]/SysRisk[REF_UNITS, 1]
-    # scipy.misc.comb(5,2)
 
-#Plot relative risk
+def calcSysRisk(unavail):
+    """
+    Calculates the relative system risk at given unavailability
+    Returns table of system risk (like Table 3.13 in Billington text)
+    """
+    P = np.array([[unavail, (1 - unavail)]])
+    # calculate system relative risk table (3.13 from Reliability Engineering)
+    NUM_UNITS = 10  # number of units in the system
+    REF_UNITS = 2  # number of units used as baseline for relative risk
+    SysRisk = np.zeros((NUM_UNITS + 1, 3))  # Table columns [# units, P(2+ unit outage), Relative risk]
+    for units in range(2, NUM_UNITS + 1, 1):
+        SysRisk[units, 0] = units
+        SysRisk[units, 1] = 1 - (P[0, 1] ** (units - 1) * (P[0, 1] + units * P[0, 0]))
+        SysRisk[units, 2] = SysRisk[units, 1] / SysRisk[REF_UNITS, 1]
+        # scipy.misc.comb(5,2)
+
+    return SysRisk
+
+# Plot relative risk
 sysRiskFig = plt.figure()
-plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=unavail)
+# Calculate relative system risk for range of outage probabilities
+outageProbs = np.linspace(0.02, 0.1, 5)
+SysRiskList = []
+for val in outageProbs:
+    SysRisk = calcSysRisk(val)
+    plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=val)
+    # SysRiskList.append(calcSysRisk(val)) #creates a list of each risk table
+
+
+# Plot relative risk
+# sysRiskFig = plt.figure()
+# plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=unavail)
 plt.xlabel('Number of Units')
 plt.ylabel('Relative Risk')
 plt.legend()
