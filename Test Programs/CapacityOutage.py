@@ -34,6 +34,7 @@ def calcSysRisk(unavail):
 
     return SysRisk
 
+
 # Plot relative risk
 sysRiskFig = plt.figure()
 # Calculate relative system risk for range of outage probabilities
@@ -43,7 +44,6 @@ for val in outageProbs:
     SysRisk = calcSysRisk(val)
     plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=val)
     # SysRiskList.append(calcSysRisk(val)) #creates a list of each risk table
-
 
 # Plot relative risk
 # sysRiskFig = plt.figure()
@@ -59,5 +59,31 @@ plt.show()
 # plt.ylabel('Prob of being in state')
 # plt.legend()
 # plt.title(comp_name + " State probabilities over time")
+
+data = np.array([[25, 0.02, 0.98], \
+                 [25, 0.02, 0.98], \
+                 [50, 0.02, 0.98]])
+
+
+def COPT(data):
+    """
+    Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
+    Input: array of unit capacities and outage probabilities
+    [capacity, P(unavailable), P(available)]
+    Output: cumulative outage probability table
+    [Capacity out, Cumulative probability]
+    """
+
+    # initialize probability table --> this method seems incorrect
+    outageSteps = np.linspace(0, data[:, 0].sum(), 1+data[:, 0].sum()/data[:, 0].min())
+    outageTable = np.zeros((outageSteps.size, 2))  # update this to size based on increments of smallest unit
+    outageTable[:, 0] = outageSteps
+
+    for unit in data:
+
+        outageTable[outageTable[:,0]==25,1] = 0.005
+
+    return outageTable
+
 
 print("did it work?")
