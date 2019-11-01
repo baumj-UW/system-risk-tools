@@ -9,6 +9,7 @@ Display relative risk calculations
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.misc
+import pandas as pd
 
 # define probabilities
 
@@ -51,7 +52,7 @@ for val in outageProbs:
 plt.xlabel('Number of Units')
 plt.ylabel('Relative Risk')
 plt.legend()
-plt.show()
+#plt.show() ---> UNCOMMENT TO SHOW PLOT
 # for (i,s) in enumerate(STATES):
 #     plt.plot(results.t/365,results.y[i],label=s)
 # plt.grid(True)
@@ -61,7 +62,7 @@ plt.show()
 # plt.title(comp_name + " State probabilities over time")
 
 data = np.array([[25, 0.02, 0.98], \
-                 [25, 0.02, 0.98], \
+                 [30, 0.02, 0.98], \
                  [50, 0.02, 0.98]])
 
 
@@ -73,17 +74,34 @@ def COPT(data):
     Output: cumulative outage probability table
     [Capacity out, Cumulative probability]
     """
+    # initalize Outage Table dataframe
+    coptHeaders = ["Capacity Outage", "Cumulative Probability"]
+    testdata = np.array([[0, 1.0], [25, 0.95], [50, 0.005]])
+    outageTable = pd.DataFrame(data=None, columns=coptHeaders)
+    outageTable = outageTable.set_index(coptHeaders[0])  # sets index to capacity outage value
+
+    #outageTable.loc[70] = 0.0008  ## adds index 70 with given value to the data frame
 
     # initialize probability table --> this method seems incorrect
-    outageSteps = np.linspace(0, data[:, 0].sum(), 1+data[:, 0].sum()/data[:, 0].min())
-    outageTable = np.zeros((outageSteps.size, 2))  # update this to size based on increments of smallest unit
-    outageTable[:, 0] = outageSteps
+    outageSteps = np.linspace(0, data[:, 0].sum(), 1 + data[:, 0].sum() / data[:, 0].min())
+    # outageTable = np.zeros((outageSteps.size, 2))  # update this to size based on increments of smallest unit
+    # outageTable[:, 0] = outageSteps
 
     for unit in data:
+        # make list of new outage values to calculate
+            # get current index list
+            # add "new unit" to each item in current index list
+            # remove duplicates
+        # iterate through list of new outage values and calculate new cumulative probability
+            ## ?? if prev outage value exists, use it, else .... substitute?
 
-        outageTable[outageTable[:,0]==25,1] = 0.005
+        outageTable.loc[unit[0]] = unit[1] + 1
+        print(outageTable)
+        # outageTable[outageTable[:,0]==25,1] = 0.005
 
     return outageTable
 
+
+output = COPT(data)
 
 print("did it work?")
