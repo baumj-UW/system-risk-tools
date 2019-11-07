@@ -49,17 +49,12 @@ for val in outageProbs:
 # Plot relative risk
 # sysRiskFig = plt.figure()
 # plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=unavail)
-plt.xlabel('Number of Units')
-plt.ylabel('Relative Risk')
+plt.xlabel('Number of Units in system')
+plt.ylabel('Relative Risk (in % of 2 unit case)')
 plt.legend()
-#plt.show() ---> UNCOMMENT TO SHOW PLOT
-# for (i,s) in enumerate(STATES):
-#     plt.plot(results.t/365,results.y[i],label=s)
-# plt.grid(True)
-# plt.xlabel('Time (years)')
-# plt.ylabel('Prob of being in state')
-# plt.legend()
-# plt.title(comp_name + " State probabilities over time")
+plt.title("Relative Risk of using a 1 unit reserve criterion")
+#plt.show() #---> UNCOMMENT TO SHOW PLOT
+
 
 data = np.array([[25, 0.02, 0.98], \
                  [30, 0.02, 0.98], \
