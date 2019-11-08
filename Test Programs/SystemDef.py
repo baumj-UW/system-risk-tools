@@ -29,4 +29,10 @@ gen3 = np.array([[0, 0.960],\
 gen4 = np.array([[0, 0.98],\
                  [50, 0.02]])
 
-generators = [gen1, gen2, gen3]
+gen5 = np.array([[0, 0.98],\
+                 [3, 0.02]])
+
+gen6 = np.array([[0, 0.98],\
+                 [5, 0.02]])
+
+generators = [gen5, gen5, gen6]

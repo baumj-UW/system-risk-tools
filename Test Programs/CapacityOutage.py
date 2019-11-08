@@ -65,8 +65,8 @@ def COPT(data):
     [Capacity out, Cumulative probability]
     """
     # initalize Outage Table dataframe with P(0) = 1.0
-    coptHeaders = ["Capacity Outage", "Cumulative Prob"]
-    outageTable = pd.DataFrame(data=np.array([[0, 1.0]]), columns=coptHeaders)
+    coptHeaders = ["Capacity Outage", "Cumulative Prob", "Individual Prob"]
+    outageTable = pd.DataFrame(data=np.array([[0, 1.0, 1.0]]), columns=coptHeaders)
     outageTable = outageTable.set_index(coptHeaders[0])  # sets index to capacity outage value
 
     for unit in data:
@@ -75,7 +75,7 @@ def COPT(data):
         # new list by adding outage state Ci to each index item in existing table
         new_out = [(c + x) for c in list(unit[1:, 0]) for x in prev_out]
         new_out.extend(x for x in prev_out if x not in new_out)  # maybe keep separate lists?
-        new_out.sort()  # sorts this list (not needed) --> better to wait until final table is complete
+        # new_out.sort()  # sorts this list (not needed) --> better to wait until final table is complete
         new_probs = []
         for outage in new_out:  # recursive capacity add per Billington
             # P(x) = sum(p_i*P'(X-C_i)) for all capacity states i
@@ -92,7 +92,16 @@ def COPT(data):
 
         print(outageTable)
 
-    return outageTable
+    # calculate individual probabilities --> MAKE THIS MORE EFFICIENT
+    outageTable = outageTable.sort_values(by='Capacity Outage', ascending=False) # clean up sort placement
+    c_probs = outageTable.loc[:, "Cumulative Prob"].values
+    i_probs = np.zeros((len(c_probs)))
+    i_probs[0] = c_probs[0]
+    for (i, c) in enumerate(c_probs[1:]):
+        i_probs[i + 1] = c - i_probs[i]
+    outageTable.loc[:, "Individual Prob"] = i_probs
+
+    return outageTable.sort_values(by='Capacity Outage')
 
 
 def getP(x, table, prev_out):
@@ -107,14 +116,16 @@ def getP(x, table, prev_out):
 
 
 output = COPT(system.generators)
+print(output)
 
-# Plot Capacity outage
+# Plot and Print Capacity outage
 CapOutFig = plt.figure()
-plt.plot(output.sort_values(by='Capacity Outage'))
+plt.plot(output, label=["Cumulative", "Individual"])
 plt.xlabel('Capacity Outage')
 plt.ylabel('Cumulative Probability')
 plt.title("Capacity Outage Probability")
 plt.grid()
+plt.legend()
 plt.show() #---> UNCOMMENT TO SHOW PLOT
 
 
