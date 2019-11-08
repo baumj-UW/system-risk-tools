@@ -53,11 +53,11 @@ plt.xlabel('Number of Units in system')
 plt.ylabel('Relative Risk (in % of 2 unit case)')
 plt.legend()
 plt.title("Relative Risk of using a 1 unit reserve criterion")
-#plt.show() #---> UNCOMMENT TO SHOW PLOT
+# plt.show() #---> UNCOMMENT TO SHOW PLOT
 
 
 data = np.array([[25, 0.02, 0.98], \
-                 [30, 0.02, 0.98], \
+                 [25, 0.02, 0.98], \
                  [50, 0.02, 0.98]])
 
 
@@ -69,32 +69,42 @@ def COPT(data):
     Output: cumulative outage probability table
     [Capacity out, Cumulative probability]
     """
-    # initalize Outage Table dataframe
-    coptHeaders = ["Capacity Outage", "Cumulative Probability"]
-    testdata = np.array([[0, 1.0], [25, 0.95], [50, 0.005]])
-    outageTable = pd.DataFrame(data=None, columns=coptHeaders)
+    # initalize Outage Table dataframe with P(0) = 1.0
+    coptHeaders = ["Capacity Outage", "Cumulative Prob"]
+    outageTable = pd.DataFrame(data=np.array([[0, 1.0]]), columns=coptHeaders)
     outageTable = outageTable.set_index(coptHeaders[0])  # sets index to capacity outage value
-
-    #outageTable.loc[70] = 0.0008  ## adds index 70 with given value to the data frame
-
-    # initialize probability table --> this method seems incorrect
-    outageSteps = np.linspace(0, data[:, 0].sum(), 1 + data[:, 0].sum() / data[:, 0].min())
-    # outageTable = np.zeros((outageSteps.size, 2))  # update this to size based on increments of smallest unit
-    # outageTable[:, 0] = outageSteps
 
     for unit in data:
         # make list of new outage values to calculate
-            # get current index list
-            # add "new unit" to each item in current index list
-            # remove duplicates
-        # iterate through list of new outage values and calculate new cumulative probability
-            ## ?? if prev outage value exists, use it, else .... substitute?
+        prev_out = list(outageTable.index.values)
+        new_out = [unit[0] + x for x in prev_out]  # add "new unit" to each item in current index list
+        new_out.extend(x for x in prev_out if x not in new_out)  # maybe keep separate lists?
+        new_out.sort()  # sorts this list (not needed) --> better to wait until final table is complete
+        new_probs = []
+        for outage in new_out:  # recursive capacity add per Billington
+            x_c = ({True: (outage - unit[0]), False: 0}[(outage - unit[0]) > 0])  # Case for negative X-C
+            # P(x) = (1-U)P'(X) + (U)P'(X-C)
+            prob = unit[2] * getP(outage, outageTable, prev_out) + unit[1] * getP(x_c, outageTable, prev_out)
+            new_probs.append(prob)
+            # could handle this addition with a for loop?# current P calc is inefficient but cleaner
+        # update outage table with new probabilities
+        for (x, p) in zip(new_out, new_probs):
+            outageTable.loc[x, "Cumulative Prob"] = p
 
-        outageTable.loc[unit[0]] = unit[1] + 1
         print(outageTable)
-        # outageTable[outageTable[:,0]==25,1] = 0.005
 
     return outageTable
+
+
+def getP(x, table, prev_out):
+    """
+    Return P'(X) if previously calculated; else P'(X) = 0
+    """
+    if x in prev_out:
+        p = table.loc[x, "Cumulative Prob"]
+    else:
+        p = 0
+    return p
 
 
 output = COPT(data)
