@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.misc
 import pandas as pd
+import SystemDef as system
 
 # define probabilities
 
@@ -54,22 +55,12 @@ plt.title("Relative Risk of using a 1 unit reserve criterion")
 # plt.show() #---> UNCOMMENT TO SHOW PLOT
 
 
-# if capacity table is read from file, do some validation on Probabilities
-data = np.array([[10, 0.10, 0.90], \
-                 [25, 0.02, 0.98], \
-                 [40, 0.05, 0.95], \
-                 [50, 0.03, 0.97]])
-
-data2 = np.array([[25, 0.02, 0.98], \
-                 [25, 0.02, 0.98], \
-                 [50, 0.02, 0.98]])
-
 
 def COPT(data):
     """
     Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
-    Input: array of unit capacities and outage probabilities
-    [capacity, P(unavailable), P(available)]
+    Input: list of units in the system
+            units represented by array of [Ci,Pi] for i states of outage C with probability P
     Output: cumulative outage probability table
     [Capacity out, Cumulative probability]
     """
@@ -81,22 +72,20 @@ def COPT(data):
     for unit in data:
         # make list of new outage values to calculate
         prev_out = list(outageTable.index.values)
-        new_out = [unit[0] + x for x in prev_out]  # add "new unit" to each item in current index list
+        # new list by adding outage state Ci to each index item in existing table
+        new_out = [(c + x) for c in list(unit[1:, 0]) for x in prev_out]
         new_out.extend(x for x in prev_out if x not in new_out)  # maybe keep separate lists?
         new_out.sort()  # sorts this list (not needed) --> better to wait until final table is complete
         new_probs = []
         for outage in new_out:  # recursive capacity add per Billington
             # P(x) = sum(p_i*P'(X-C_i)) for all capacity states i
             prob = 0  # initialize new probability calc
-            for (c, p) in zip([0, unit[0]], [unit[2], unit[1]]): # states = list of gen outage states
+            for (c, p) in unit:
                 x = ({True: (outage - c), False: 0}[(outage - c) > 0])  # Case for negative X-C
                 prob += p * getP(x, outageTable, prev_out)
-                # prob += p * ({True: outageTable.loc[x, "Cumulative Prob"], False: 0}[(x in prev_out)]) # fails
+                # prob += p * ({True: outageTable.loc[x, "Cumulative Prob"], False: 0}[(x in prev_out)]) # this fails
 
-            # P(x) = (1-U)P'(X) + (U)P'(X-C)
-            # prob = unit[2] * getP(outage, outageTable, prev_out) + unit[1] * getP(x_c, outageTable, prev_out)
             new_probs.append(prob)
-            # could handle this addition with a for loop?# current P calc is inefficient but cleaner
         # update outage table with new probabilities
         for (x, p) in zip(new_out, new_probs):
             outageTable.loc[x, "Cumulative Prob"] = p
@@ -117,7 +106,7 @@ def getP(x, table, prev_out):
     return p
 
 
-output = COPT(data2)
+output = COPT(system.generators)
 
 # Plot Capacity outage
 CapOutFig = plt.figure()
@@ -126,7 +115,7 @@ plt.xlabel('Capacity Outage')
 plt.ylabel('Cumulative Probability')
 plt.title("Capacity Outage Probability")
 plt.grid()
-#plt.show() #---> UNCOMMENT TO SHOW PLOT
+plt.show() #---> UNCOMMENT TO SHOW PLOT
 
 
 
