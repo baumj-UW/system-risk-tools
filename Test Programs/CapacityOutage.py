@@ -116,7 +116,7 @@ plt.xlabel('Capacity Outage')
 plt.ylabel('Cumulative Probability')
 plt.title("Capacity Outage Probability")
 plt.grid()
-plt.show() #---> UNCOMMENT TO SHOW PLOT
+#plt.show() #---> UNCOMMENT TO SHOW PLOT
 
-print("did it work?")
+
 
