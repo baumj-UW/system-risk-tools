@@ -47,8 +47,6 @@ for val in outageProbs:
     # SysRiskList.append(calcSysRisk(val)) #creates a list of each risk table
 
 # Plot relative risk
-# sysRiskFig = plt.figure()
-# plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=unavail)
 plt.xlabel('Number of Units in system')
 plt.ylabel('Relative Risk (in % of 2 unit case)')
 plt.legend()
@@ -56,9 +54,11 @@ plt.title("Relative Risk of using a 1 unit reserve criterion")
 # plt.show() #---> UNCOMMENT TO SHOW PLOT
 
 
-data = np.array([[25, 0.02, 0.98], \
+# if capacity table is read from file, do some validation on Probabilities
+data = np.array([[10, 0.10, 0.90], \
                  [25, 0.02, 0.98], \
-                 [50, 0.02, 0.98]])
+                 [40, 0.05, 0.95], \
+                 [50, 0.03, 0.97]])
 
 
 def COPT(data):
@@ -109,4 +109,14 @@ def getP(x, table, prev_out):
 
 output = COPT(data)
 
+# Plot Capacity outage
+CapOutFig = plt.figure()
+plt.plot(output.sort_values(by='Capacity Outage'))
+plt.xlabel('Capacity Outage')
+plt.ylabel('Cumulative Probability')
+plt.title("Capacity Outage Probability")
+plt.grid()
+plt.show() #---> UNCOMMENT TO SHOW PLOT
+
 print("did it work?")
+
