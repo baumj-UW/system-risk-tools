@@ -92,18 +92,18 @@ def COPT(data):
         for (x, p) in zip(new_out, new_probs):
             outageTable.loc[x, "Cumulative Prob"] = p
 
-        print(outageTable)
+        # print(outageTable) # Uncomment to show recursive COPT table updates
 
-    # calculate individual probabilities --> MAKE THIS MORE EFFICIENT
-    outageTable = outageTable.sort_values(by='Capacity Outage', ascending=False) # clean up sort placement
+    # calculate individual probabilities
+    outageTable = outageTable.sort_values(by='Capacity Outage')
     c_probs = outageTable.loc[:, "Cumulative Prob"].values
-    i_probs = np.zeros((len(c_probs)))
-    i_probs[0] = c_probs[0]
-    for (i, c) in enumerate(c_probs[1:]):
-        i_probs[i + 1] = c - i_probs[i]
+    i_probs = c_probs.copy()
+    i_probs[0:-1] = c_probs[0:-1] - c_probs[1:]
     outageTable.loc[:, "Individual Prob"] = i_probs
 
-    return outageTable.sort_values(by='Capacity Outage')
+    print(outageTable)
+
+    return outageTable
 
 
 def getP(x, table, prev_out):

@@ -35,4 +35,5 @@ gen5 = np.array([[0, 0.98],\
 gen6 = np.array([[0, 0.98],\
                  [5, 0.02]])
 
-generators = [gen1, gen2, gen3]
+generators = [gen1, gen2, gen3] * 5
+
