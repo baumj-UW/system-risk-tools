@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import scipy.misc
 import pandas as pd
 import SystemDef as system
+from bisect import bisect_left
 
 # define probabilities
 
@@ -72,6 +73,7 @@ def COPT(data):
     for unit in data:
         # make list of new outage values to calculate
         prev_out = list(outageTable.index.values)
+        prev_out.sort() # sort this for processing later steps
         # new list by adding outage state Ci to each index item in existing table
         new_out = [(c + x) for c in list(unit[1:, 0]) for x in prev_out]
         new_out.extend(x for x in prev_out if x not in new_out)  # maybe keep separate lists?
@@ -106,12 +108,15 @@ def COPT(data):
 
 def getP(x, table, prev_out):
     """
-    Return P'(X) if previously calculated; else P'(X) = 0
+    prev_out: sorted list of previous outages
+    Return P'(X) if (X <= existing table values); else P'(X) = 0
     """
-    if x in prev_out:
-        p = table.loc[x, "Cumulative Prob"]
+    if x <= prev_out[-1]:
+        min_val = prev_out[bisect_left(prev_out, x)]
+        p = table.loc[min_val, "Cumulative Prob"]
     else:
         p = 0
+
     return p
 
 
