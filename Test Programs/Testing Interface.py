@@ -17,14 +17,14 @@ import SystemDef
 
 sysdata = loadcase(casefile=case9())
 
-"""Demo Relative System risk plot"""
-outageProbs = np.linspace(0.02, 0.1, 5)
-co.relSysRisk(outageProbs)
-
-"""Demo Capacity Outage Functions"""
-output = co.COPT(SystemDef.generators)
-co.plotCOPT(output)
-print(output)
+# """Demo Relative System risk plot"""
+# outageProbs = np.linspace(0.02, 0.1, 5)
+# co.relSysRisk(outageProbs)
+#
+# """Demo Capacity Outage Functions"""
+# output = co.COPT(SystemDef.generators)
+# co.plotCOPT(output)
+# print(output)
 
 
 
@@ -36,6 +36,20 @@ test = create_ppc()
 
 data = pd.read_csv(SystemDef.filepath)
 
+# create list of individual generator outage tables
+#FORs = data.loc[:, "FOR"].values
+#gen = np.array([0, 1-FORs],[cap,FORs])
+
+stuff = data.loc[:15,["PMax MW","FOR"]].values
+allgens = [np.array([[0, 1-gen[1]],[gen[0], gen[1]]]) for gen in stuff]
+output = co.COPT(allgens)
+co.plotCOPT(output)
+
+# for gen in stuff:
+#     table = [np.array([[0, 1-gen[1]],[gen[0], gen[1]]])]
+# for i in data:
+#     gen = np.array([[0, 1-FOR],\
+#                     [P MaxMW, FOR]])
 """
 random functions that might be necessary 
 headers = data.columns
