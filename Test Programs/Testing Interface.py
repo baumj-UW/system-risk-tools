@@ -14,8 +14,8 @@ import pandas as pd
 import SystemDef
 
 
-
-sysdata = loadcase(casefile=case9())
+# pypower test
+#sysdata = loadcase(casefile=case9())
 
 # """Demo Relative System risk plot"""
 # outageProbs = np.linspace(0.02, 0.1, 5)
@@ -26,24 +26,26 @@ sysdata = loadcase(casefile=case9())
 # co.plotCOPT(output)
 # print(output)
 
-
-
-test = create_ppc()
+# pandapower test
+# test = create_ppc()
 
 #create_pp_from_ppc()
 
 #print(test)
 
+
+"""COPT for RTS-GMLC data"""
 data = pd.read_csv(SystemDef.filepath)
 
 # create list of individual generator outage tables
 #FORs = data.loc[:, "FOR"].values
 #gen = np.array([0, 1-FORs],[cap,FORs])
 
-stuff = data.loc[:15,["PMax MW","FOR"]].values
+stuff = data.loc[:10,["PMax MW","FOR"]].values
 allgens = [np.array([[0, 1-gen[1]],[gen[0], gen[1]]]) for gen in stuff]
 output = co.COPT(allgens)
-co.plotCOPT(output)
+sumtypes = data.groupby(["Category"])["PMax MW"].sum()
+co.plotCOPT(output, sumtypes)
 
 # for gen in stuff:
 #     table = [np.array([[0, 1-gen[1]],[gen[0], gen[1]]])]

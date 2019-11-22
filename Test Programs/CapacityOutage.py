@@ -116,7 +116,7 @@ def getP(x, table, prev_out):
 
     return p
 
-def plotCOPT(table):
+def plotCOPT(table, gendata):
     # Plot and Print Capacity outage
     CapOutFig = plt.figure()
     plt.plot(table, label=["Cumulative", "Individual"])
@@ -125,7 +125,14 @@ def plotCOPT(table):
     plt.title("Capacity Outage Probability")
     plt.grid()
     plt.legend()
-    plt.show(CapOutFig) #---> UNCOMMENT TO SHOW PLOT
+
+    #barfig = plt.figure()
+   # pivot_df = gendata.pivot(columns="Category",values="PMax MW")
+    #gendata.plot.bar(stacked=True)# , figsize=(10,7))
+    pd.DataFrame(gendata).T.plot.bar(stacked=True) #this is round about but works
+    plt.title("Generation Mix")
+    plt.ylabel("Capacity in MW")
+    plt.show() #---> UNCOMMENT TO SHOW PLOT CapOutFig,barfig
     return
 
 
