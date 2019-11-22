@@ -41,10 +41,14 @@ data = pd.read_csv(SystemDef.filepath)
 #FORs = data.loc[:, "FOR"].values
 #gen = np.array([0, 1-FORs],[cap,FORs])
 
-stuff = data.loc[:10,["PMax MW","FOR"]].values
-allgens = [np.array([[0, 1-gen[1]],[gen[0], gen[1]]]) for gen in stuff]
-output = co.COPT(allgens)
-sumtypes = data.groupby(["Category"])["PMax MW"].sum()
+
+smalltable = data.loc[data.loc[:, "FOR"] > 0, ["Category","PMax MW","FOR"]] # limits data used for table
+
+stuff = data.loc[:,["PMax MW","FOR"]].values
+
+allgens = [np.array([[0, 1-gen[2]],[gen[1], gen[2]]]) for gen in smalltable.values]
+output = co.COPT(allgens, pmin=1e-7)
+sumtypes = smalltable.groupby(["Category"])["PMax MW"].sum()
 co.plotCOPT(output, sumtypes)
 
 # for gen in stuff:

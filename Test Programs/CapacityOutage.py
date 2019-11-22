@@ -54,7 +54,7 @@ def relSysRisk(outageProbs):
     return
 
 
-def COPT(data):
+def COPT(data, pmin=1e-8):
     """
     Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
     Input: list of units in the system
@@ -89,6 +89,9 @@ def COPT(data):
         for (x, p) in zip(new_out, new_probs):
             outageTable.loc[x, "Cumulative Prob"] = p
 
+        # Truncate table to save computation time
+        outageTable = outageTable.loc[outageTable.loc[:, "Cumulative Prob"] > pmin]
+
         # print(outageTable) # Uncomment to show recursive COPT table updates
 
     # calculate individual probabilities
@@ -115,6 +118,15 @@ def getP(x, table, prev_out):
         p = 0
 
     return p
+
+# def truncP(table, pmin):
+#     """
+#     Truncate the COPT to omit outages with cumulative P < pmin
+#     returns the smaller table
+#     """
+#     #largestO = table.loc["Cumulative Prob"].value
+#     #output.loc[:, "Cumulative Prob"].values
+#     return table.loc[table.loc[:, "Cumulative Prob"] > pmin]
 
 def plotCOPT(table, gendata):
     # Plot and Print Capacity outage
