@@ -5,6 +5,7 @@ Project Description:
 System definition for Capacity Outage calculation
 """
 import numpy as np
+import pandas as pd
 
 # if capacity table is read from file, do some validation on Probabilities
 data = np.array([[10, 0.10, 0.90], \
@@ -36,4 +37,9 @@ gen6 = np.array([[0, 0.98],\
                  [5, 0.02]])
 
 generators = [gen1, gen2, gen3] * 5
+
+
+# Import generator info from data file
+filepath = r"C:\Users\baumj\Documents\Research New Project\Python Dev\RTS_Data/SourceData/gen.csv"
+
 
