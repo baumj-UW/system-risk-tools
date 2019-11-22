@@ -10,13 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.misc
 import pandas as pd
-import SystemDef as system
+# import SystemDef as system
 from bisect import bisect_left
 
-# define probabilities
-
-
-unavail = 0.02
 
 
 def calcSysRisk(unavail):
@@ -38,23 +34,24 @@ def calcSysRisk(unavail):
     return SysRisk
 
 
-# Plot relative risk
-sysRiskFig = plt.figure()
-# Calculate relative system risk for range of outage probabilities
-outageProbs = np.linspace(0.02, 0.1, 5)
-SysRiskList = []
-for val in outageProbs:
-    SysRisk = calcSysRisk(val)
-    plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=val)
-    # SysRiskList.append(calcSysRisk(val)) #creates a list of each risk table
+def relSysRisk(outageProbs):
+    # Plot relative risk
+    sysRiskFig = plt.figure()
+    # Calculate relative system risk for range of outage probabilities
+    #outageProbs = np.linspace(0.02, 0.1, 5)
+    SysRiskList = []
+    for val in outageProbs:
+        SysRisk = calcSysRisk(val)
+        plt.plot(SysRisk[:, 0], SysRisk[:, 2], label=val)
+        # SysRiskList.append(calcSysRisk(val)) #creates a list of each risk table
 
-# Plot relative risk
-plt.xlabel('Number of Units in system')
-plt.ylabel('Relative Risk (in % of 2 unit case)')
-plt.legend()
-plt.title("Relative Risk of using a 1 unit reserve criterion")
-# plt.show() #---> UNCOMMENT TO SHOW PLOT
-
+    # Plot relative risk
+    plt.xlabel('Number of Units in system')
+    plt.ylabel('Relative Risk (in % of 2 unit case)')
+    plt.legend()
+    plt.title("Relative Risk of using a 1 unit reserve criterion")
+    plt.show(sysRiskFig) #---> UNCOMMENT TO SHOW PLOT
+    return
 
 
 def COPT(data):
@@ -101,7 +98,7 @@ def COPT(data):
     i_probs[0:-1] = c_probs[0:-1] - c_probs[1:]
     outageTable.loc[:, "Individual Prob"] = i_probs
 
-    print(outageTable)
+    #print(outageTable)
 
     return outageTable
 
@@ -119,19 +116,17 @@ def getP(x, table, prev_out):
 
     return p
 
-
-output = COPT(system.generators)
-print(output)
-
-# Plot and Print Capacity outage
-CapOutFig = plt.figure()
-plt.plot(output, label=["Cumulative", "Individual"])
-plt.xlabel('Capacity Outage')
-plt.ylabel('Cumulative Probability')
-plt.title("Capacity Outage Probability")
-plt.grid()
-plt.legend()
-plt.show() #---> UNCOMMENT TO SHOW PLOT
+def plotCOPT(table):
+    # Plot and Print Capacity outage
+    CapOutFig = plt.figure()
+    plt.plot(table, label=["Cumulative", "Individual"])
+    plt.xlabel('Capacity Outage')
+    plt.ylabel('Cumulative Probability')
+    plt.title("Capacity Outage Probability")
+    plt.grid()
+    plt.legend()
+    plt.show(CapOutFig) #---> UNCOMMENT TO SHOW PLOT
+    return
 
 
 
