@@ -22,8 +22,9 @@ import SystemDef
 # co.relSysRisk(outageProbs)
 #
 # """Demo Capacity Outage Functions"""
-# output = co.COPT(SystemDef.generators)
-# co.plotCOPT(output)
+output = co.COPT(SystemDef.generators)
+shorter = co.roundCOPT(output.copy())
+co.plotCOPT(output)
 # print(output)
 
 # pandapower test
@@ -38,16 +39,19 @@ import SystemDef
 data = pd.read_csv(SystemDef.filepath)
 
 # create list of individual generator outage tables
-#FORs = data.loc[:, "FOR"].values
-#gen = np.array([0, 1-FORs],[cap,FORs])
-
-
 smalltable = data.loc[data.loc[:, "FOR"] > 0, ["Category","PMax MW","FOR"]] # limits data used for table
-
-stuff = data.loc[:,["PMax MW","FOR"]].values
-
+# stuff = data.loc[:,["PMax MW","FOR"]].values
 allgens = [np.array([[0, 1-gen[2]],[gen[1], gen[2]]]) for gen in smalltable.values]
-output = co.COPT(allgens, pmin=1e-7)
+
+
+MAKE_COPT = False
+if MAKE_COPT:
+    output = co.COPT(allgens, pmin=1e-7) #save this to a file for using later
+    output.to_csv(SystemDef.savepath + "output.csv")
+else:
+    # option to read COPT from file
+    output = pd.read_csv(SystemDef.savepath + "output.csv", index_col="Capacity Outage")
+
 sumtypes = smalltable.groupby(["Category"])["PMax MW"].sum()
 co.plotCOPT(output, sumtypes)
 

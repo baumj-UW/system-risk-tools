@@ -54,7 +54,7 @@ def relSysRisk(outageProbs):
     return
 
 
-def COPT(data, pmin=1e-8):
+def COPT(data, pmin=1e-10):
     """
     Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
     Input: list of units in the system
@@ -119,14 +119,44 @@ def getP(x, table, prev_out):
 
     return p
 
-# def truncP(table, pmin):
-#     """
-#     Truncate the COPT to omit outages with cumulative P < pmin
-#     returns the smaller table
-#     """
-#     #largestO = table.loc["Cumulative Prob"].value
-#     #output.loc[:, "Cumulative Prob"].values
-#     return table.loc[table.loc[:, "Cumulative Prob"] > pmin]
+
+def roundCOPT(table):
+    """
+    General function to round the COPT
+    Based on expression from Billington and Allan
+    returns rounded COPT
+    """
+    prev_outages = table.index.values.copy()
+   # np.linspace(0, prev_outages[-1], num=round(maxval/prev_outages[1])+1)
+    #steps, size = np.linspace(0, table.index.values[-1], dtype=int, retstep=True)
+    step_size = prev_outages[1]
+    new_steps = np.arange(0, prev_outages[-1]+step_size, step=step_size, dtype=int)
+    newtable = table.copy()
+    table.loc[new_steps[-1], "Individual Prob"] = 0
+    # c_probs = outageTable.loc[:, "Cumulative Prob"].values
+    # i_probs = c_probs.copy()
+    # i_probs[0:-1] = c_probs[0:-1] - c_probs[1:]
+    # outageTable.loc[:, "Individual Prob"] = i_probs
+
+
+    #get Ck and Cj from new_steps
+    for cap in prev_outages:
+        if cap not in new_steps:
+            k = bisect_left(new_steps, cap) #index of Ck, Cj = k-1
+            if k>0:
+                Cj = new_steps[k-1]
+                Ck = new_steps[k]
+                table.loc[Cj, "Individual Prob"] += (Ck - cap)/(Ck - Cj) * table.loc[cap, "Individual Prob"]
+                table.loc[Ck, "Individual Prob"] += (cap - Cj) / (Ck - Cj) * table.loc[cap, "Individual Prob"]
+            else:
+                print("it happened")
+    # minval = prev_out[bisect_left(prev_out, x)]
+    # P[j] = (C[k] - C[i])/(C[k] - C[j]) * P[i]
+    # newtable = range(0, table.loc[-1, "Capacity Outage"].value, step=round(table.loc[1,"Capacity Outage"]))
+    c_probs = [table.loc[cap:, "Individual Prob"].values.sum() for cap in new_steps]
+    table.loc[new_steps, "Cumulative Prob"] = c_probs
+    return table.loc[new_steps]
+
 
 def plotCOPT(table, gendata):
     # Plot and Print Capacity outage

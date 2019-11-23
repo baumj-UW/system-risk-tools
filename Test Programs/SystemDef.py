@@ -42,4 +42,6 @@ generators = [gen1, gen2, gen3] * 5
 # Import generator info from data file
 filepath = r"C:\Users\baumj\Documents\Research New Project\Python Dev\RTS_Data/SourceData/gen.csv"
 
+savepath = r"C:\Users\baumj\Documents\Research New Project\Python Dev\Test Programs/Results/"
+
 
