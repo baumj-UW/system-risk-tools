@@ -22,7 +22,8 @@ import SystemDef
 # co.relSysRisk(outageProbs)
 #
 # """Demo Capacity Outage Functions"""
-output = co.COPT(SystemDef.generators)
+output = co.COPT(SystemDef.generators, speed=[False, ])
+short_out = co.COPT(SystemDef.generators, speed=[True, 20])
 shorter = co.roundCOPT(output.copy())
 co.plotCOPT(output)
 co.plotCOPT(shorter)

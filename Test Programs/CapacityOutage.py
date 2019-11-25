@@ -54,7 +54,7 @@ def relSysRisk(outageProbs):
     return
 
 
-def COPT(data, pmin=1e-10):
+def COPT(data, pmin=1e-10, speed=[True, 50]):
     """
     Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
     Input: list of units in the system
@@ -92,6 +92,17 @@ def COPT(data, pmin=1e-10):
         # Truncate table to save computation time
         outageTable = outageTable.loc[outageTable.loc[:, "Cumulative Prob"] > pmin]
 
+        # Round table if speed[0] is true and table is longer than speed[1]
+        if speed[0] and (len(outageTable) > speed[1]):
+            # calculate individual probabilities --> figure out an efficient time to do this
+            outageTable = outageTable.sort_values(by='Capacity Outage')
+            c_probs = outageTable.loc[:, "Cumulative Prob"].values
+            i_probs = c_probs.copy()
+            i_probs[0:-1] = c_probs[0:-1] - c_probs[1:]
+            outageTable.loc[:, "Individual Prob"] = i_probs
+            outageTable = roundCOPT(outageTable)
+
+
         # print(outageTable) # Uncomment to show recursive COPT table updates
 
     # calculate individual probabilities
@@ -127,33 +138,28 @@ def roundCOPT(table):
     returns rounded COPT
     """
     prev_outages = table.index.values.copy()
-   # np.linspace(0, prev_outages[-1], num=round(maxval/prev_outages[1])+1)
-    #steps, size = np.linspace(0, table.index.values[-1], dtype=int, retstep=True)
-    step_size = prev_outages[1]
+    step_size = prev_outages[1] #make step size smallest gen --> could improve this
     new_steps = np.arange(0, prev_outages[-1]+step_size, step=step_size, dtype=int)
-    table.loc[new_steps[-1], "Individual Prob"] = 0
-    # c_probs = outageTable.loc[:, "Cumulative Prob"].values
-    # i_probs = c_probs.copy()
-    # i_probs[0:-1] = c_probs[0:-1] - c_probs[1:]
-    # outageTable.loc[:, "Individual Prob"] = i_probs
+    init = list(set(new_steps) - set(prev_outages))
+    for step in init:
+        table.loc[step, "Individual Prob"] = 0 ## need to initialize for all table values
 
-
-    #get Ck and Cj from new_steps
+    # Proportionately split individual probabilities from old COPT to new step sizes
+    # For details see Billington and Alan Ch.3
     for cap in prev_outages:
         if cap not in new_steps:
             k = bisect_left(new_steps, cap) #index of Ck, Cj = k-1
-            if k>0:
-                Cj = new_steps[k-1]
-                Ck = new_steps[k]
-                table.loc[Cj, "Individual Prob"] += (Ck - cap)/(Ck - Cj) * table.loc[cap, "Individual Prob"]
-                table.loc[Ck, "Individual Prob"] += (cap - Cj) / (Ck - Cj) * table.loc[cap, "Individual Prob"]
-            else:
-                print("it happened")
+            Cj = new_steps[k-1]
+            Ck = new_steps[k]
+            table.loc[Cj, "Individual Prob"] += (Ck - cap)/(Ck - Cj) * table.loc[cap, "Individual Prob"]
+            table.loc[Ck, "Individual Prob"] += (cap - Cj) / (Ck - Cj) * table.loc[cap, "Individual Prob"]
 
+    # Recalculate cumulative probability based on new steps
     newtable = table.loc[new_steps].copy()
     c_probs = [newtable.loc[cap:, "Individual Prob"].values.sum() for cap in new_steps]
     newtable.loc[:, "Cumulative Prob"] = c_probs
-    return newtable #table.loc[new_steps]
+
+    return newtable
 
 
 def plotCOPT(table, gendata=None):
