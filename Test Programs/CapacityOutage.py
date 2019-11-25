@@ -131,7 +131,6 @@ def roundCOPT(table):
     #steps, size = np.linspace(0, table.index.values[-1], dtype=int, retstep=True)
     step_size = prev_outages[1]
     new_steps = np.arange(0, prev_outages[-1]+step_size, step=step_size, dtype=int)
-    newtable = table.copy()
     table.loc[new_steps[-1], "Individual Prob"] = 0
     # c_probs = outageTable.loc[:, "Cumulative Prob"].values
     # i_probs = c_probs.copy()
@@ -150,15 +149,14 @@ def roundCOPT(table):
                 table.loc[Ck, "Individual Prob"] += (cap - Cj) / (Ck - Cj) * table.loc[cap, "Individual Prob"]
             else:
                 print("it happened")
-    # minval = prev_out[bisect_left(prev_out, x)]
-    # P[j] = (C[k] - C[i])/(C[k] - C[j]) * P[i]
-    # newtable = range(0, table.loc[-1, "Capacity Outage"].value, step=round(table.loc[1,"Capacity Outage"]))
-    c_probs = [table.loc[cap:, "Individual Prob"].values.sum() for cap in new_steps]
-    table.loc[new_steps, "Cumulative Prob"] = c_probs
-    return table.loc[new_steps]
+
+    newtable = table.loc[new_steps].copy()
+    c_probs = [newtable.loc[cap:, "Individual Prob"].values.sum() for cap in new_steps]
+    newtable.loc[:, "Cumulative Prob"] = c_probs
+    return newtable #table.loc[new_steps]
 
 
-def plotCOPT(table, gendata):
+def plotCOPT(table, gendata=None):
     # Plot and Print Capacity outage
     CapOutFig = plt.figure()
     plt.plot(table, label=["Cumulative", "Individual"])
@@ -168,12 +166,14 @@ def plotCOPT(table, gendata):
     plt.grid()
     plt.legend()
 
-    #barfig = plt.figure()
-   # pivot_df = gendata.pivot(columns="Category",values="PMax MW")
-    #gendata.plot.bar(stacked=True)# , figsize=(10,7))
-    pd.DataFrame(gendata).T.plot.bar(stacked=True) #this is round about but works
-    plt.title("Generation Mix")
-    plt.ylabel("Capacity in MW")
+    #Plot stacked bar of generator types if given
+    if gendata:
+        #barfig = plt.figure()
+       # pivot_df = gendata.pivot(columns="Category",values="PMax MW")
+        #gendata.plot.bar(stacked=True)# , figsize=(10,7))
+        pd.DataFrame(gendata).T.plot.bar(stacked=True) #this is round about but works
+        plt.title("Generation Mix")
+        plt.ylabel("Capacity in MW")
     plt.show() #---> UNCOMMENT TO SHOW PLOT CapOutFig,barfig
     return
 

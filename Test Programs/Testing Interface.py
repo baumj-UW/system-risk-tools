@@ -25,6 +25,7 @@ import SystemDef
 output = co.COPT(SystemDef.generators)
 shorter = co.roundCOPT(output.copy())
 co.plotCOPT(output)
+co.plotCOPT(shorter)
 # print(output)
 
 # pandapower test
