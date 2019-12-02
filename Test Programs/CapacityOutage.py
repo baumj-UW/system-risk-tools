@@ -173,7 +173,7 @@ def plotCOPT(table, gendata=None):
     plt.legend()
 
     #Plot stacked bar of generator types if given
-    if gendata:
+    if gendata is not None:
         #barfig = plt.figure()
        # pivot_df = gendata.pivot(columns="Category",values="PMax MW")
         #gendata.plot.bar(stacked=True)# , figsize=(10,7))

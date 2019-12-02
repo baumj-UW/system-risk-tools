@@ -12,6 +12,7 @@ import CapacityOutage as co
 from RTS_Data.FormattedData.pandapower.source_data_to_pp import create_ppc, create_pp_from_ppc
 import pandas as pd
 import SystemDef
+import time
 
 
 # pypower test
@@ -22,9 +23,17 @@ import SystemDef
 # co.relSysRisk(outageProbs)
 #
 # """Demo Capacity Outage Functions"""
+start_long = time.time()
 output = co.COPT(SystemDef.generators, speed=[False, ])
-short_out = co.COPT(SystemDef.generators, speed=[True, 20])
 shorter = co.roundCOPT(output.copy())
+speed_long = time.time() - start_long
+print("long:",speed_long)
+
+start_short = time.time()
+short_out = co.COPT(SystemDef.generators, speed=[True, 20])
+speed_short = time.time() - start_short
+print("short:",speed_short)
+
 co.plotCOPT(output)
 co.plotCOPT(shorter)
 # print(output)
@@ -46,10 +55,14 @@ smalltable = data.loc[data.loc[:, "FOR"] > 0, ["Category","PMax MW","FOR"]] # li
 allgens = [np.array([[0, 1-gen[2]],[gen[1], gen[2]]]) for gen in smalltable.values]
 
 
-MAKE_COPT = False
+MAKE_COPT = True
 if MAKE_COPT:
-    output = co.COPT(allgens, pmin=1e-7) #save this to a file for using later
+    start_time = time.time()
+    output = co.COPT(allgens, pmin=1e-7, speed=[True, 10])
+    runtime = time.time() - start_time
     output.to_csv(SystemDef.savepath + "output.csv")
+    with open(SystemDef.savepath + "output.csv", 'a') as fd:
+        fd.write("Table build-time: %f sec" % runtime)
 else:
     # option to read COPT from file
     output = pd.read_csv(SystemDef.savepath + "output.csv", index_col="Capacity Outage")
