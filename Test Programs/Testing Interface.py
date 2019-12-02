@@ -22,20 +22,20 @@ import time
 # outageProbs = np.linspace(0.02, 0.1, 5)
 # co.relSysRisk(outageProbs)
 #
-# """Demo Capacity Outage Functions"""
-start_long = time.time()
-output = co.COPT(SystemDef.generators, speed=[False, ])
-shorter = co.roundCOPT(output.copy())
-speed_long = time.time() - start_long
-print("long:",speed_long)
-
-start_short = time.time()
-short_out = co.COPT(SystemDef.generators, speed=[True, 20])
-speed_short = time.time() - start_short
-print("short:",speed_short)
-
-co.plotCOPT(output)
-co.plotCOPT(shorter)
+# # """Demo Capacity Outage Functions"""
+# start_long = time.time()
+# output = co.COPT(SystemDef.generators, speed=[False, ])
+# shorter = co.roundCOPT(output.copy())
+# speed_long = time.time() - start_long
+# print("long:",speed_long)
+#
+# start_short = time.time()
+# short_out = co.COPT(SystemDef.generators, speed=[True, 20])
+# speed_short = time.time() - start_short
+# print("short:",speed_short)
+#
+# co.plotCOPT(output)
+# co.plotCOPT(shorter)
 # print(output)
 
 # pandapower test
@@ -52,22 +52,27 @@ data = pd.read_csv(SystemDef.filepath)
 # create list of individual generator outage tables
 smalltable = data.loc[data.loc[:, "FOR"] > 0, ["Category","PMax MW","FOR"]] # limits data used for table
 # stuff = data.loc[:,["PMax MW","FOR"]].values
-allgens = [np.array([[0, 1-gen[2]],[gen[1], gen[2]]]) for gen in smalltable.values]
+
+fulltable = data.loc[:, ["Category","PMax MW","FOR"]] # limits data used for table
+allgens = [np.array([[0, 1-gen[2]],[gen[1], gen[2]]]) for gen in fulltable.values] #changed to test
 
 
-MAKE_COPT = True
-if MAKE_COPT:
-    start_time = time.time()
-    output = co.COPT(allgens, pmin=1e-7, speed=[True, 10])
-    runtime = time.time() - start_time
-    output.to_csv(SystemDef.savepath + "output.csv")
-    with open(SystemDef.savepath + "output.csv", 'a') as fd:
-        fd.write("Table build-time: %f sec" % runtime)
-else:
-    # option to read COPT from file
-    output = pd.read_csv(SystemDef.savepath + "output.csv", index_col="Capacity Outage")
+MAKE_COPT = False
+#for step in [10, 20, 30, 40, 50, 60, 70, 80 , 90, 100]:
+for step in [20]:
+    if MAKE_COPT:
+        start_time = time.time()
+        output = co.COPT(allgens, pmin=1e-5, speed=[True, step])
+        runtime = time.time() - start_time
+        fullpath = SystemDef.savepath +"alldata_%d_" % step + "output.csv"
+        output.to_csv(fullpath)
+        with open(fullpath, 'a') as fd:
+            fd.write("Table build-time: %f sec" % runtime)
+    else:
+        # option to read COPT from file
+        output = pd.read_csv(SystemDef.savepath + "output.csv", index_col="Capacity Outage")
 
-sumtypes = smalltable.groupby(["Category"])["PMax MW"].sum()
+sumtypes = fulltable.groupby(["Category"])["PMax MW"].sum()
 co.plotCOPT(output, sumtypes)
 
 # for gen in stuff:

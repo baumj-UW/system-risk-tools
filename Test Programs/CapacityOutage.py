@@ -138,7 +138,7 @@ def roundCOPT(table):
     returns rounded COPT
     """
     prev_outages = table.index.values.copy()
-    step_size = prev_outages[1] #make step size smallest gen --> could improve this
+    step_size = max(round(prev_outages[1], -1), 10) #make step size smallest gen --> could improve this
     new_steps = np.arange(0, prev_outages[-1]+step_size, step=step_size, dtype=int)
     init = list(set(new_steps) - set(prev_outages))
     for step in init:
