@@ -59,9 +59,13 @@ def COPT(data, pmin=1e-10, speed=[True, 50]):
     Recursive algorithm for capacity model building (Allan and Billington, 2.2.4)
     Input: list of units in the system
             units represented by array of [Ci,Pi] for i states of outage C with probability P
+            pmin - cutoff probability
+            speed[T/F, int] - T/F to activate table rounding, int = table length that triggers rounding
     Output: cumulative outage probability table
     [Capacity out, Cumulative probability]
     """
+    assert pmin<1, "Your cutoff pmin will return an empty table"
+
     # initalize Outage Table dataframe with P(0) = 1.0
     coptHeaders = ["Capacity Outage", "Cumulative Prob", "Individual Prob"]
     outageTable = pd.DataFrame(data=np.array([[0, 1.0, 1.0]]), columns=coptHeaders)
@@ -138,7 +142,8 @@ def roundCOPT(table):
     returns rounded COPT
     """
     prev_outages = table.index.values.copy()
-    step_size = max(round(prev_outages[1], -1), 10) #make step size smallest gen --> could improve this
+    #step_size = max(round(prev_outages[1], -1), 10) #make step size smallest gen --> could improve this
+    step_size = round(prev_outages[1]+5, -1)  # make step size smallest gen --> could improve this
     new_steps = np.arange(0, prev_outages[-1]+step_size, step=step_size, dtype=int)
     init = list(set(new_steps) - set(prev_outages))
     for step in init:
@@ -165,9 +170,10 @@ def roundCOPT(table):
 def plotCOPT(table, gendata=None):
     # Plot and Print Capacity outage
     CapOutFig = plt.figure()
-    plt.plot(table, label=["Cumulative", "Individual"])
-    plt.xlabel('Capacity Outage')
-    plt.ylabel('Cumulative Probability')
+    plt.plot(table.loc[:,'Cumulative Prob'], label="Cumulative")
+    plt.plot(table.loc[:,'Individual Prob'], label="Individual")
+    plt.xlabel('Capacity Outage (MW)')
+    plt.ylabel('Probability')
     plt.title("Capacity Outage Probability")
     plt.grid()
     plt.legend()

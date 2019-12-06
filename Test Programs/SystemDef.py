@@ -44,4 +44,7 @@ filepath = r"C:\Users\baumj\Documents\Research New Project\Python Dev\RTS_Data/S
 
 savepath = r"C:\Users\baumj\Documents\Research New Project\Python Dev\Test Programs/Results/"
 
+datapath = [r"C:\Users\baumj\Documents\Research New Project\Python Dev\Test Programs/Results/output1.csv",
+            r"C:\Users\baumj\Documents\Research New Project\Python Dev\Test Programs/Results/output1.csv"]
+
 
